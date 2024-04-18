@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Tokens</title>
+    <!-- Incluir scripts y style -->
+    <%- include('partials/head') %>
+</head>
+<body>
+    <!-- Incluir el menú -->
+    <%- include('partials/header') %>
+    <div id="container" class="fullwidth">
+        <section>
+            <div class="width1200">
+                <h1>Transfer From Tokens</h1>
+                <p>Enable seamless token transfers between different accounts with our DApp's "Transfer from" functionality. This feature facilitates the transfer of a specified amount of tokens from the sender's account to the receiver's address, all within the specified contract and network. What sets this apart from a simple transfer is the flexibility it offers – the transaction executor can be a different account than the token owner. However, to execute this transfer, the sender must have received prior approval (allowance) from the token owner. Our platform ensures smooth execution of transactions while maintaining stringent security measures. Simplify token transfers across accounts with ease using our user-friendly interface.</p>
+            </div>
+        </section>
+        <section>
+            <div class="width1200">
+                <form id="transferForm" class="formFlex">            
+                    <div class="inputFlex">
+                        <label for="contractAddress">Contract Address</label>
+                        <p class="info-text">The contract address of ERC-20.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>                        
+                        <input type="text" id="contractAddress" name="contractAddress" placeholder="E.g.: 0x1C304eE5E4DfB86....2f16253DaFf16b355B2f0" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="network">Network</label>
+                        <p class="info-text">The network where the contract is located.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <select id="network" name="network" required>
+                            <option value="80001">Polygon Mumbai Testnet (ID: 80001)</option>
+                            <option value="97">BSC Testnet (ID: 97)</option>
+                            <!-- Agrega aquí otras opciones de red si es necesario -->
+                        </select>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="sender">Sender Address</label>
+                        <p class="info-text">This field represents the owner address of the tokens.	</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="sender" name="sender" placeholder="E.g.: 0x7018494749bDA....2bE9CFFD7d7d091Be611b74" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="recipient">Recipient Address</label>
+                        <p class="info-text">This field is the account where the tokens are going to be sent.	</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="recipient" name="recipient" placeholder="E.g.: 0x9908c0679cEea7A....E3c0d27CEF734D79f8B36" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="amount">Amount of Tokens</label>
+                        <p class="info-text">The amount of tokens you want to transfer. Not a value in WEI. 1 = 1 token.	</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="amount" name="amount" placeholder="E.g.: 10" step="any" value="" required>
+                    </div>            
+                    <div class="inputFlex">
+                        <label for="gasLimit">Gas Limit</label>
+                        <p class="info-text">The gas price to use in the transaction measured in GWEI. If it is not informed, it is requested to the chain. Required to accelerate a transaction.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="gasLimit" name="gasLimit" value="25000" required>
+                    </div>
+                    <button type="submit"><i class="fa-solid fa-play"></i> Launch</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Modal -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div class="message">
+                    <span id="icon"></span> <!-- Nuevo elemento para el icono -->
+                    <div id="successMessage"></div>                                
+                    <button id="transactionHash"><a id="transactionLink" href="" target="_blank"></a></button>
+                </div>
+            </div>
+        </div>  
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('transferForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevenir el envío del formulario
+    
+            // Obtener los datos del formulario
+            const formData = new FormData(this);
+    
+            // Construir el cuerpo de la solicitud
+            const requestBody = {
+                contractAddress: formData.get('contractAddress'),
+                sender: formData.get('sender'),
+                recipient: formData.get('recipient'),                
+                network: parseInt(formData.get('network')), // Convertir la red a entero
+                amount: parseFloat(formData.get('amount')) * 10**18, // Convertir tokens a wei
+                gasLimit: parseInt(formData.get('gasLimit')),
+            };
+            
+            
+            // Configurar los encabezados de la solicitud
+            const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer <%= apiKey %>',
+            'X-application-vkn': '<%= appId %>'
+        };
+    
+            // Realizar la solicitud HTTP POST
+            axios.post('https://api.vottun.tech/erc/v1/erc20/transferFrom', requestBody, { headers })
+                .then(response => {
+                    // Manejar la respuesta
+                    console.log('Response:', response.data);
+                    console.log('Transaction hash:', response.data.txHash);
+                    console.log('Nonce:', response.data.nonce);
+                    // Mostrar el modal con el mensaje de éxito y el enlace de transacción
+                    showModal(true, response.data.txHash, formData.get('network'));
+                })
+                .catch(error => {
+                    // Manejar cualquier error de la solicitud
+                    console.error('Error:', error.response.data);
+                    // Mostrar el modal con el mensaje de error
+                    showModal(false, null, formData.get('network'), error);
+                });
+        });
+
+        // Función para mostrar el modal con el mensaje de éxito y el enlace de transacción
+        function showModal(success, txHash, network, error) {
+            const modal = document.getElementById("myModal");
+            const span = document.getElementsByClassName("close")[0];
+            const successMessage = document.getElementById("successMessage");
+            const transactionLink = document.getElementById("transactionLink");
+            const icon = document.getElementById("icon");
+            const errorJsonBtn = document.createElement("button");
+    
+            // Establecer el mensaje de éxito
+            if (success) {
+                // Establecer el mensaje de éxito
+                successMessage.innerHTML = "<h3>Operation completed successfully!</h3>";
+                // Establecer el icono de éxito
+                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                // Establecer el enlace de la transacción
+                const url = network === '80001' ? 'https://mumbai.polygonscan.com/tx/' + txHash : 'https://testnet.bscscan.com/tx/' + txHash;
+                transactionLink.href = url;
+                transactionLink.innerHTML = "View transaction";
+            } else {
+                // Obtener el mensaje de error desde el objeto de error
+                const errorMessage = error.message;
+
+                // Establecer el mensaje de error
+                successMessage.innerHTML = `<h3>Error while making the transfer</h3><p>${errorMessage}</p>`;
+                // Establecer el icono de error
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                transactionLink.innerHTML = "View error";
+                // Ocultar el enlace de la transacción
+                transactionLink.onclick = function() {
+                    const errorJson = JSON.stringify(error, null, 2);
+                    const newWindow = window.open("", "_blank");
+                    newWindow.document.write("<pre>" + errorJson + "</pre>");
+                };
+            }
+    
+            // Mostrar el modal
+            modal.style.display = "flex";
+    
+            // Cerrar el modal al hacer clic en (x)
+            span.onclick = function() {
+                modal.style.display = "none";
+                location.reload(); // Recargar la página
+            }
+    
+            // Cerrar el modal al hacer clic fuera de él
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    location.reload(); // Recargar la página
+                }
+            }
+        }
+
+        document.querySelectorAll('.info-icon').forEach(function(icon) {
+            const paragraph = icon.previousElementSibling; // Seleccionar el hermano anterior del icono de información, que es el párrafo
+            
+            icon.addEventListener('mouseover', function() {
+                paragraph.classList.add('showInfo-text'); // Agregar la clase showInfo-text al párrafo cuando el ratón entra en el icono
+            });
+            
+            icon.addEventListener('mouseout', function() {
+                paragraph.classList.remove('showInfo-text'); // Quitar la clase showInfo-text del párrafo cuando el ratón sale del icono
+            });
+        });
+    </script>
+    <%- include('partials/footer') %>
+</body>
+</html>

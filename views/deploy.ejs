@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy Contract ERC-20</title>
+    <!-- Incluir scripts y style -->
+    <%- include('partials/head') %>
+</head>
+<body>
+    <!-- Incluir el menú -->
+    <%- include('partials/header') %>
+    <div id="container" class="fullwidth">    
+        <section>
+            <div class="width1200">
+                <h1>Deploy Contract ERC-20</h1>
+                <p>Creating a new ERC-20 smart contract has never been easier with our DApp. Simply input your desired parameters, such as token name, symbol, and initial supply, and with just a few clicks, your custom smart contract will be deployed onto the blockchain. Our user-friendly interface guides you through the process seamlessly, ensuring that even those new to blockchain technology can effortlessly launch their token project. Say goodbye to complex coding and hello to hassle-free contract deployment with our intuitive platform.</p>
+            </div>
+        </section>
+        <section>
+            <div class="width1200">
+                <form id="deployForm" class="formFlex">            
+                    <div class="inputFlex">
+                        <label for="name">Token Name</label>                        
+                        <p class="info-text">This field represents the name of the token.	</p>                         
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="name" name="name" placeholder="Your token name. E.g.: MetaSkeletor" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="symbol">Symbol</label>                        
+                        <p class="info-text">This field represents the symbol the token. It is a shorter abbreviation used to identify the token in a more concise manner.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="symbol" name="symbol" placeholder="Token symbol. E.g.: MTSKLT" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="alias">Alias</label>                        
+                        <p class="info-text">This field represents an alias or a user-friendly nickname for the token. It's often used for display purposes and can provide additional information about the token.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="alias" name="alias" placeholder="MetaSkeletor Token" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="initialSupply">Initial Supply (Tokens)</label>                        
+                        <p class="info-text">This field represents the initial supply of the token. Not a value in WEI. 1 = 1 token.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="initialSupply" name="initialSupply" placeholder="Initial supply of your contract. E.g.: 100000000 (Max. 100 token Vottun test.)" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="network">Network</label>                        
+                        <p class="info-text">The network where the contract is located.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <select id="network" name="network" required>
+                            <option value="80001">Polygon Mumbai Testnet (ID: 80001)</option>
+                            <option value="97">BSC Testnet (ID: 97)</option>
+                        </select>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="gasLimit">Gas Limit</label>                        
+                        <p class="info-text">The gas price to use in the transaction measured in GWEI. If it is not informed, it is requested to the chain. Required to accelerate a transaction</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="gasLimit" name="gasLimit" value="2500000" required>
+                    </div>
+                    <button type="submit"><i class="fa-solid fa-play"></i> Launch</button>
+
+                    <!-- Modal -->
+                    <div id="myModal" class="modal">
+                        <div class="modal-content">
+                            <span class="close">&times;</span>
+                            <div class="message">
+                                <span id="icon"></span> <!-- Nuevo elemento para el icono -->
+                                <div id="successMessage"></div>                                
+                                <button id="transactionHash"><a id="transactionLink" href="" target="_blank"></a></button>
+                            </div>
+                        </div>
+                    </div>                    
+                </form> 
+            </div>
+        </section>  
+    </div>
+    <script>
+        document.getElementById('deployForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevenir el envío del formulario
+    
+            // Obtener los datos del formulario
+            const formData = new FormData(this);
+    
+            // Construir el objeto deployData
+            const deployData = {
+                name: formData.get('name'),
+                symbol: formData.get('symbol'),
+                alias: formData.get('alias'),
+                initialSupply: parseFloat(formData.get('initialSupply')) * 10**18,
+                network: parseInt(formData.get('network')),
+                gasLimit: parseInt(formData.get('gasLimit'))
+            };
+    
+            // Configurar los encabezados de la solicitud
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer <%= apiKey %>',
+                'X-application-vkn': '<%= appId %>'
+            };
+    
+            // Realizar la solicitud POST
+            axios.post('https://api.vottun.tech/erc/v1/erc20/deploy', deployData, { headers })
+                .then(response => {
+                    console.log('Contrato desplegado correctamente!');
+                    console.log('Dirección del contrato:', response.data.contractAddress);
+                    console.log('Hash de transacción:', response.data.txHash);
+                    // Mostrar el modal con el mensaje de éxito y el enlace de transacción
+                    showModal(true, response.data.txHash, formData.get('network'));
+                })
+                .catch(error => {
+                    console.error('Error deploying contract:', error);
+                    // Mostrar el modal con el mensaje de error
+                    showModal(false, null, formData.get('network'), error);
+                });
+        });    
+        
+        // Función para mostrar el modal con el mensaje y enlace correspondientes
+        function showModal(success, txHash, network, error) {
+            const modal = document.getElementById("myModal");
+            const span = document.getElementsByClassName("close")[0];
+            const successMessage = document.getElementById("successMessage");
+            const transactionLink = document.getElementById("transactionLink");
+            const icon = document.getElementById("icon");
+            const errorJsonBtn = document.createElement("button");
+
+            if (success) {
+                // Establecer el mensaje de éxito
+                successMessage.innerHTML = "<h3>Operation completed successfully!</h3>";
+                // Establecer el icono de éxito
+                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                // Establecer el enlace de la transacción
+                const url = network === '80001' ? 'https://mumbai.polygonscan.com/tx/' + txHash : 'https://testnet.bscscan.com/tx/' + txHash;
+                transactionLink.href = url;
+                transactionLink.innerHTML = "View transaction";
+            } else {
+                // Obtener el mensaje de error desde el objeto de error
+                const errorMessage = error.message;
+
+                // Establecer el mensaje de error
+                successMessage.innerHTML = `<h3>Error deploying contract</h3><p>${errorMessage}</p>`;
+                // Establecer el icono de error
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                transactionLink.innerHTML = "View error";
+                // Ocultar el enlace de la transacción
+                transactionLink.onclick = function() {
+                    const errorJson = JSON.stringify(error, null, 2);
+                    const newWindow = window.open("", "_blank");
+                    newWindow.document.write("<pre>" + errorJson + "</pre>");
+                };
+            }
+
+            // Mostrar el modal
+            modal.style.display = "flex";
+
+            // Cerrar el modal al hacer clic en (x)
+            span.onclick = function() {
+                modal.style.display = "none";
+                location.reload(); // Recargar la página
+            }
+
+            // Cerrar el modal al hacer clic fuera de él
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    location.reload(); // Recargar la página
+                }
+            }
+        }        
+
+        document.querySelectorAll('.info-icon').forEach(function(icon) {
+            const paragraph = icon.previousElementSibling; // Seleccionar el hermano anterior del icono de información, que es el párrafo
+            
+            icon.addEventListener('mouseover', function() {
+                paragraph.classList.add('showInfo-text'); // Agregar la clase showInfo-text al párrafo cuando el ratón entra en el icono
+            });
+            
+            icon.addEventListener('mouseout', function() {
+                paragraph.classList.remove('showInfo-text'); // Quitar la clase showInfo-text del párrafo cuando el ratón sale del icono
+            });
+        });
+
+       
+
+    </script>
+    <%- include('partials/footer') %>    
+</body>
+</html>

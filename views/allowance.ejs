@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allowance Management</title>
+<!-- Incluir scripts y style -->
+<%- include('partials/head') %>
+</head>
+<body>
+    <!-- Incluir el menú -->
+    <%- include('partials/header') %>
+    <div id="container" class="fullwidth">
+        <section>
+            <div class="width1200">
+                <h1>Allowance Management</h1>
+                <p>Granting and revoking token management privileges has never been simpler with our DApp's comprehensive allowance management features. With "Increase Allowance," effortlessly empower another account to handle a specified quantity of tokens, enabling smooth transactions as if they were their own. Conversely, with "Decrease Allowance," swiftly revoke these privileges, ensuring enhanced control over token usage and bolstering token security. Whether granting or revoking, our intuitive interface facilitates seamless token management, empowering you to navigate the complexities of token transactions with ease.</p>
+            </div>
+        </section>
+        <section>
+            <div class="width1200">
+                <form id="allowanceForm" class="formFlex">            
+                    <div class="inputFlex">
+                        <label for="contractAddress">Contract Address</label>
+                        <p class="info-text">The contract address	of ERC-20.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="contractAddress" name="contractAddress" placeholder="E.g.: 0x9908c0679cEea7A....E3c0d27CEF734D79f8B36" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="network">Network</label>
+                        <p class="info-text">The network where the contract is located.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <select id="network" name="network" required>
+                            <option value="80001">Polygon Mumbai Testnet (ID: 80001)</option>
+                            <option value="97">BSC Testnet (ID: 97)</option>
+                        </select>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="spender">Spender Address</label>
+                        <p class="info-text">The address who have right to manage a number of tokens the owner owns.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="text" id="spender" name="spender" placeholder="E.g.: 0x9908c0679cEea7A....E3c0d27CEF734D79f8B36" value="" required>
+                    </div>     
+                    <div class="inputFlex">
+                        <label for="operation">Operation</label>
+                        <p class="info-text">Operation you want to perform.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <select id="operation" name="operation" required>
+                            <option value="increase">Increase Allowance</option>
+                            <option value="decrease">Decrease Allowance</option>
+                        </select>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="value">Value (Tokens)</label>
+                        <p class="info-text">The number of tokens you want to add/remove from the right to manage. Not a value in WEI. 1 = 1 token.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="value" name="value" placeholder="E.g.: 10" value="" required>
+                    </div>
+                    <div class="inputFlex">
+                        <label for="gasLimit">Gas Limit</label>
+                        <p class="info-text">The gas price to use in the transaction measured in GWEI. If it is not informed, it is requested to the chain. Required to accelerate a transaction.</p>
+                        <span class="info-icon" ><i class="fa-solid fa-info-circle"></i></span>
+                        <input type="number" id="gasLimit" name="gasLimit" value="2500000" required>
+                    </div>
+                    <button type="submit"><i class="fa-solid fa-play"></i> Launch</button>
+                </form>
+            </div>
+        </section>
+    
+
+        <!-- Modal -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div class="message">
+                    <span id="icon"></span> <!-- Nuevo elemento para el icono -->
+                    <div id="successMessage"></div>                                
+                    <button id="transactionHash"><a id="transactionLink" href="" target="_blank"></a></button>
+                </div>
+            </div>
+        </div>  
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('allowanceForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const formData = new FormData(this);
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer <%= apiKey %>',
+                'X-application-vkn': '<%= appId %>'
+            };
+
+            let allowanceData;
+            if (formData.get('operation') === 'increase') {
+                allowanceData = {
+                    contractAddress: formData.get('contractAddress'),
+                    spender: formData.get('spender'),
+                    network: parseInt(formData.get('network')),
+                    gasLimit: parseInt(formData.get('gasLimit')),
+                    addedValue: parseFloat(formData.get('value')) * 10**18 // Convert tokens to wei
+                };
+            } else if (formData.get('operation') === 'decrease') {
+                allowanceData = {
+                    contractAddress: formData.get('contractAddress'),
+                    spender: formData.get('spender'),
+                    network: parseInt(formData.get('network')),
+                    gasLimit: parseInt(formData.get('gasLimit')),
+                    substractedValue: parseFloat(formData.get('value')) * 10**18 // Convert tokens to wei
+                };
+            }
+
+            // Mostrar el valor en la consola
+            console.log('addedValue:', allowanceData.addedValue);
+            console.log('substractedValue:', allowanceData.substractedValue);
+
+            const apiUrl = formData.get('operation') === 'increase' ? 'https://api.vottun.tech/erc/v1/erc20/increaseAllowance' : 'https://api.vottun.tech/erc/v1/erc20/decreaseAllowance';
+
+            axios.post(apiUrl, allowanceData, { headers })
+                .then(response => {
+                    console.log('Operation completed successfully!');
+                    console.log('Transaction Hash:', response.data.txHash);
+                    // Show modal with success message and transaction hash
+                    showModal(true, response.data.txHash, formData.get('network'));
+                })
+                .catch(error => {
+                    console.error('Error completing operation:', error);
+                    // Mostrar el modal con el mensaje de error
+                    showModal(false, null, formData.get('network'), error);
+                });
+        });
+
+        // Function to display modal with success message and transaction hash
+        // Función para mostrar el modal con el mensaje y enlace correspondientes
+        function showModal(success, txHash, network, error) {
+            const modal = document.getElementById("myModal");
+            const span = document.getElementsByClassName("close")[0];
+            const successMessage = document.getElementById("successMessage");
+            const transactionLink = document.getElementById("transactionLink");
+            const icon = document.getElementById("icon");
+            const errorJsonBtn = document.createElement("button");
+
+            if (success) {
+                // Establecer el mensaje de éxito
+                successMessage.innerHTML = "<h3>Operation completed successfully!</h3>";
+                // Establecer el icono de éxito
+                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                // Establecer el enlace de la transacción
+                const url = network === '80001' ? 'https://mumbai.polygonscan.com/tx/' + txHash : 'https://testnet.bscscan.com/tx/' + txHash;
+                transactionLink.href = url;
+                transactionLink.innerHTML = "View transaction";
+            } else {
+                // Obtener el mensaje de error desde el objeto de error
+                const errorMessage = error.message;
+
+                // Establecer el mensaje de error
+                successMessage.innerHTML = `<h3>Error deploying contract</h3><p>${errorMessage}</p>`;
+                // Establecer el icono de error
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                transactionLink.innerHTML = "View error";
+                // Ocultar el enlace de la transacción
+                transactionLink.onclick = function() {
+                    const errorJson = JSON.stringify(error, null, 2);
+                    const newWindow = window.open("", "_blank");
+                    newWindow.document.write("<pre>" + errorJson + "</pre>");
+                };
+            }
+
+            // Mostrar el modal
+            modal.style.display = "flex";
+
+            // Cerrar el modal al hacer clic en (x)
+            span.onclick = function() {
+                modal.style.display = "none";
+                location.reload(); // Recargar la página
+            }
+
+            // Cerrar el modal al hacer clic fuera de él
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    location.reload(); // Recargar la página
+                }
+            }
+        }
+
+        document.querySelectorAll('.info-icon').forEach(function(icon) {
+            const paragraph = icon.previousElementSibling; // Seleccionar el hermano anterior del icono de información, que es el párrafo
+            
+            icon.addEventListener('mouseover', function() {
+                paragraph.classList.add('showInfo-text'); // Agregar la clase showInfo-text al párrafo cuando el ratón entra en el icono
+            });
+            
+            icon.addEventListener('mouseout', function() {
+                paragraph.classList.remove('showInfo-text'); // Quitar la clase showInfo-text del párrafo cuando el ratón sale del icono
+            });
+        });
+
+    </script>
+    <%- include('partials/footer') %>
+</body>
+</html>

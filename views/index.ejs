@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vottun SKD by MetaSkeletor</title>
+<!-- Incluir scripts y style -->
+<%- include('partials/head') %>
+</head>
+<body>    
+    <!-- Incluir el menú -->
+    <%- include('partials/header') %>
+    <div id="container" class="fullwidth">  
+        <section class="slide">
+            <h1>Welcome to VOTTUNSDK<br><span>by MetaSkeletor</span></h1>
+            <p>The easiest way to manage your ERC-20 tokens with Vottun</p>
+        </section>
+        <section class="tools">
+            <h2>Management Tools</h2>
+            <p>Utilize our tools effortlessly for streamlined token management.</p>
+            <div class="dapps">
+                <div class="box">                
+                    <div class="infoBox">                    
+                        <div class="iconBox">
+                            <img src="img/deploy_stroke.svg" />
+                        </div>
+                        <div class="textBox">
+                            <h3>Deploy</h3>
+                            <p>Deploy ERC-20 smart contracts effortlessly with our DApp. Input parameters, click, and watch your custom contract go live on the blockchain, guided by our user-friendly interface.</p>
+                            <a href="/deploy">Deploy</a>
+                        </div>
+                    </div>                
+                </div>
+                <div class="box">                
+                    <div class="infoBox">                    
+                        <div class="iconBox">
+                            <img src="img/allowance_stroke.svg" />
+                        </div>
+                        <div class="textBox">
+                            <h3>Allowance</h3>
+                            <p>Manage token privileges with our DApp functions: "Increase Permission" for smooth transfers and "Decrease Permission" for quick revocation of privileges.</p>
+                            <a href="/allowance">Allowance</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="box">                
+                    <div class="infoBox">                    
+                        <div class="iconBox">
+                            <img src="img/transfer_stroke.svg" />
+                        </div>
+                        <div class="textBox">
+                            <h3>Transfer</h3>
+                            <p>Simplify token transfers securely with the "Transfer" function of our DApp. Execute transactions effortlessly and securely on the contract and network of your choice.</p>
+                            <a href="/transfer">Transfer</a>
+                        </div>
+                    </div>       
+                </div>
+                <div class="box">               
+                    <div class="infoBox">                    
+                        <div class="iconBox">
+                            <img src="img/transferfrom_stroke.svg" />
+                        </div>
+                        <div class="textBox">
+                            <h3>TransferFrom</h3>
+                            <p>Facilitate secure and flexible token transfers between accounts with our DApp's "Transfer from" feature. Get pre-approved for hassle-free transactions.</p>
+                            <a href="/transferfrom">Transfer From</a>
+                        </div>
+                    </div>                
+                </div>
+            </div>  
+        </section>
+    </div>    
+    <%- include('partials/footer') %>
+</body>
+</html>
