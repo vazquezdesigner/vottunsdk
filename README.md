@@ -1,2 +1,15 @@
+<h1>VOTTUNSDK by Metaskeletor</h1>
+
 <h2>Author</h2>
-https://twitter.com/metaskeletor
+Contact: https://twitter.com/metaskeletor
+
+<h2>Requirements</h2>
+Vottun API KEY and APP ID 
+
+https://app.vottun.io/
+
+<h2>Demo</h2>
+<p>This dapp is fully functional for testing and creating tokens</p>
+
+https://vottunsdk.vercel.app/
+
