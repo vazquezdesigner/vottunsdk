@@ -1,4 +1,5 @@
 <h1>VOTTUNSDK by Metaskeletor</h1>
+Welcome to VOTTUNSDK by MetaSkeletor, offering intuitive ERC-20 token management tools for effortless control and optimization of your assets.
 
 <h2>Author</h2>
 Contact: https://twitter.com/metaskeletor
