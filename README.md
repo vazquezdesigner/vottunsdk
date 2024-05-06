@@ -9,7 +9,7 @@ Vottun API KEY and APP ID
 https://app.vottun.io/
 
 <h2>Demo</h2>
-<p>This dapp is fully functional for testing and creating tokens</p>
+<p>This dapp is fully functional for testing and creating tokens.</p>
 
 https://vottunsdk.vercel.app/
 
