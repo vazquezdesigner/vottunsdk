@@ -13,5 +13,5 @@ https://app.vottun.io/
 
 https://vottunsdk.vercel.app/
 
-<img src="https://www.metaskeletor.club/vottun/Vottun-SKD-by-MetaSkeletor.png" width="50%" />
+<a href="https://vottunsdk.vercel.app/" target="_blank"><img src="https://www.metaskeletor.club/vottun/Vottun-SKD-by-MetaSkeletor.png" width="50%" /></a>
 
